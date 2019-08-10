@@ -1,0 +1,116 @@
+vim commands ----------------------------------------------------------------------------------
+
+Text editing
+    i: insert
+    o: insert new line
+    x: delete character
+    dd: delete line
+    ctrl+d : delete auto indents
+
+    v: Select character (then move with arrow keys)
+    V: Select line (then move with arrow keys)
+    d: Cut selection
+    dd: Cut whole line
+    y: Copy (yank) selection
+    yy: Yank current line (including folds) and newline
+    y$: Yank current line (including folds) without newline
+    p: Paste selection
+
+Movement:
+
+    h: left
+    l: right
+    j: down
+    k: up
+
+    gg: top of document
+    G: bottom of document
+    w: next word
+    e: end of word
+    0: beginning of line
+    $: end of line
+
+    H: Move to top of editor
+    M: Move to middle of editor
+    L: Move to bottom of editor
+
+    Ctrl+D: Page down
+    Ctrl+U: Page up
+    Ctrl+E: Scroll down one line
+    Ctrl+Y: Scroll up one line
+
+    ): start of next sentence
+    (: start of last sentence
+    }: start of next paragraph
+    {: start of last paragraph
+
+    m<lowercase letter> : Marks a location
+    m<uppercase letter> : Marks a location across all document
+    '<letter>: Jumps to line containing mark'
+    `<letter>: Jumps to mark itself
+
+    b<num> : Switch to numbered buffer (open file)
+    Ctrl+g : Displays current filename
+
+    ]s : When spell checking is on, jump to next mistake
+    [s : Jump to previous mistake
+
+Actions:
+    :help : Displays help in a new window
+    :set <varexpr> : sets a variable
+    :unset <var> : unsets a variable
+    :buffers : Shows currently open files (buffers)
+    :badd <filename> : Open a new buffer with the following filename
+    :retab! : Turn spaces back into tabs
+
+Macros:
+    q<letter><action><esc>q : Saves a macro defined by 'action' under a letter
+    @<letter> : Plays the macro under a letter starting at the current cursor position
+
+Buffers:
+    :ls : List current buffers
+    :b[n|p] : Switch to next/previous buffer
+    :bdelete : Delete the current buffer
+    :badd <file> : Open a file in a new buffer
+    :e <file> : Open a file in a new buffer and switch to it.  If no <file> is included, open new empty one
+
+
+Windows:
+    :sp : Split the current window horizontally (:num<sp> sets the new window's height)
+    :vs : Split the current window vertically (see above)
+    ctrl+w n <file> : Open a new window with a new buffer
+    ctrl+w [h|j|k|l] : Change focus to window in the indicated direction
+    ctrl+w [+|-] : Change current window size
+    ctrl+w = : Set all windows to equal size
+    ctrl+w c : Close current window
+
+Tabs:
+    :tabs : List all tabs
+    :tabnew : Create new tab
+    :tabclose : Close current
+    gt : Switch to next tab
+    gT : Switch to previous tab
+
+Folds:
+    zf<num>[k|j] : Create a fold from the cursor up/down <num> lines
+    zf/<string> : Create a fold from the cursor to the next instance of <string>
+    zd : Deletes the fold at the cursor
+    zE : Deletes all folds
+
+    z[j|k] : Move cursor to the next/previous fold
+    [z : Move to start of current open fold
+    ]z : Move to end of current open fold
+
+    zm : increases the fold level by one
+    zr : decreases the fold level by one
+    zR : decreases the fold level to zero (opens all folds)
+    zo : Opens a fold at the cursor
+    z0 : Opens all folds at the cursor
+    zc : Closes a fold at the cursor
+    zC : Closes all folds at the cursor
+    zM : Closes all open folds
+
+    :mkview : Saves folds for a given file
+    :loadview : Loads folds for a given file
+
+#TODO retab!???

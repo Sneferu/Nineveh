@@ -1,0 +1,108 @@
+Set variable value:
+	Boolean true
+		set <var>
+	Boolean false
+		set no<var>
+	Normal value:
+		set <var>=<val>
+	Enum value:
+		set <var>=<val1>,<val2>,<val3>
+	Key value:
+		set <var>=<<key>>
+		E.g. set pastetoggle=<f5>
+	Null value:
+		set <var>=
+	Boolean toggle (set to logical opposite)
+		set <var>!
+
+Commands:
+	Just... put it in
+
+Filetype:
+	When filetype is detected, a filetype event is unleashed.  All commands of the format
+		:filetype <cmd>
+	are then executed
+
+Internal:
+	bool compatible: Compatibility with vi (best set to false)
+	var encoding: Sets encoding (utf-8 is reasonable)
+	enum viminfo:
+		'<val> : Max file count to store
+		<<val> : Max line count to store
+		s<val> : Max data to store (in kb)
+
+Formatting
+	bool wrap: Wrap text that extends beyond the j
+	var formatoptions: Weird string, best set to "tcqrn1"
+
+	bool expandtab: Convert tabs to spaces
+	bool shiftround: When shifting lines, round indentation to nearest multiple of 'shiftwidth'
+	var shiftwidth: Default line indentation in spaces (for auto-indenting, etc)
+	var tabstop: Visual length of tab character in spaces
+	var softtabstop: Number of columns to insert when 'tab' is pressed (if !expandtab, uses a combo of tabs and spaces)
+
+	bool number: Enable line numbers in leftmost column
+	var scrolloff: Minimum number of lines allowed on either side of the cursor (keeps it from going to very bottom or top of screen)
+
+	bool list: Display special whitespace characters differently
+	enum listchars
+		tab:<val> : Display tabs as <val>
+		trail:<val> : Display trailing whitespace as <val>
+		eol:<val> : Display end-of-line as <val>
+		extends:<val> : Use <val> to indicate there is more text to the right of the screen
+		precedes:<val> : Use <val> to indicate there is more text to the left of the screen
+		nbsp:<val> : Use <val> to indicate a non-breakable space exists at this position (different from normal whitespace)
+
+	bool autoindent: Turns autoindentation on.  No other indentation controls work without this.
+	bool smartindent: Turns on smart indentation, which makes some adjustments for code syntax
+	bool cindent: Turns on c-style indentation (MUTEX with smartindent, indentexpr)
+	var indentexpr : Expression for indentation in this file (MUTEX with smartindent, cindent).  Default values are usually pretty good
+	cmd filetype indent [on|off] : Switches indentexpr indent mode on/off for this file
+	key pastetoggle: Toggles autoindentation off for copy/paste purposes
+
+	enum foldmethod
+		indent: Creates folds based on the indentation of the text (useful for code)
+		marker: Folds on a language-specific marker (inserted into actual text as a comment)
+	var foldmarker: Comma-separated triple characters for use within fold marker comments
+	var foldignore: Characters to ignore when using indent folding (defaults to # for C preprocessor, often useful to set Null)
+
+Controls:
+	var modelines: Number of lines at start/end of file to check for modelines (Set 0 to disable)
+	enum laststatus
+		0 : Statusline never visible
+		1 : Statusline only visible with multiple windows
+		2 : Statusline always visible
+	enum backspace
+		indent: Allow backspacing over autoindents
+		eol: Allow backspacing over line breaks
+		start: Allow backspacing over the start of an insert block
+	bool ttyfast: Enable fast scrolling
+	bool showmode: Show current editing mode
+	bool showcmd: Show partial commands in the last line of the screen
+
+Search:
+	bool hlsearch: Enables highlighting for search matches
+	bool incsearch: Enable incremental search (jumping to next result on re-search)
+	bool ignorecase: Include uppercase words with lowercase search term
+	bool smartcase: Include only uppercase words with uppercase search term
+
+Syntax:
+	cmd syntax [on/off]: Turn on/off syntax highlighting
+	bool spell: Enables spell checking
+	var spelllang: Sets spell checking language (uses value [<language>])
+	
+
+Plugins:
+	cmd filetype plugin indent [on/off]: Not sure what this does, but best set to on
+
+Modelines:
+	Include comments formatted as
+		/* vim: <options>: */
+	At the start and end of a file, where <options> is formatted like a .vimrc line
+	Number of lines checked is determined by 'modelines' variable
+
+
+#TODO remapping
+#TODO statusline
+#TODO scrollbar/mouse
+#TODO plugins
