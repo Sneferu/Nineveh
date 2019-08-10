@@ -1,0 +1,63 @@
+Arch Linux Package Manager (pacman)
+
+Description:
+    The pacman utility allows installation and version control for packages running
+    on the Arch Linux platform.  It does this by maintaining an internal database
+    of packages and their versions, as well as access to several repositories, both
+    local and remote.  It can update these repositories, check version numbers against
+    running software, and perform requested updates.
+    It's based around the following location flags:
+        -S: Remote database
+        -Q: Local installation
+        -U: Path
+    And actions flags:
+        -y: Update
+        -s: Search
+        -i: Information
+        -l: List
+        -w: Download
+        -R: Remove (-Rs with dependencies, -Rdd without dependencies)
+    Note that these are only vague and the actual behavior is defined below
+
+Update package database:
+    pacman -Sy : Updates the package database
+
+Search repositories:
+    pacman -Ss <package> : Search repos for a package (regex)
+    OR
+    pacsearch <package> : Search repos for a package (regex)
+
+Search installed packages:
+    pacman -Qs <package> : Search installed for a package
+
+Get information:
+    Installed package:
+        pacman -Qi <package>
+    From repos:
+        pacman -Si <package>
+    List associated files:
+        pacman -Ql <package> : Prints files and package info
+        pacman -Qlq <package> : Only prints files
+    Find out-of-date packages:
+        pacman -Qu : List out-of-date packages
+
+Install/Upgrade a pacman package:
+    pacman -S <package> : Downloads and installs (or upgrades) a package
+    pacman -Sw <package> : Only downloads a package
+    pacman -U <path> : Installs a package from a path
+
+Install an AUR package:
+    git clone <AUR repo>
+    cd <AUR repo>
+    makepkg -s
+    pacman -U *.xz
+
+Remove a package:
+    pacman -R <package> : Remove only a package
+    pacman -Rs <package> : Remove a package and unshared dependencies
+    pacman -Rdd <package> : Remove a package even if it has dependencies
+
+Update your wholesystem from kernel to bootloader (Chaotic Evil):
+    pacman -Syu
+    Restart
+
