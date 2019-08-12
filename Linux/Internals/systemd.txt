@@ -1,0 +1,223 @@
+Systemd startup daemon
+
+Systemd serves as a replacement for Linux' older initd.  It is the first process run at
+startup (pid1), and starts all other processes.  Its configuration directory consists
+of a number of init scripts which start various daemons and post-boot processes.
+The daemons started by systemd are known as 'services', and each has three possible
+states:  Enabled services are wanted by some target (marked by a ".wants" directory),
+disabled services are not, and static services are controlled by other services as
+dependencies.
+On startup, all enabled services are started by systemd, which may result in the
+corresponding static services starting as well.
+These startup scripts (called 'unit' scripts) are located inside /usr/lib/systemd/system/
+and each enabled one is symlinked from /etc/systemd/system/<target>.wants/
+A target is essentially a system-wide state, indicating a set of system services to run
+and parameters to use.  When transitioning between targets, parameters and services are
+altered accordingly.
+
+Available Services ----------------------------------------------------------------------
+
+To list currently active systemd units:
+    systemctl list-units
+
+To list units loaded (or attempted to load) into memory:
+    systemctl list-units --all
+
+To list available systemd units:
+    systemctl list-unit-files --type=<unit_type>
+
+To see various service startup times:
+    systemd-analyze blame
+
+To see the dependency tree of a service:
+    systemctl list-dependencies <service>
+
+Service Settings ------------------------------------------------------------------------
+
+To see the parameters used to run a service:
+    systemctl cat <service>
+
+To show low level parameters current in a running service:
+    systemctl show <service>
+
+To edit a unit file by creating a file to append (RECOMMENDED):
+    systemctl edit <service>
+
+To edit a unit file directly:
+    systemctl edit --full <service>
+
+To reload systemd itself (to pick up these changes)
+    systemctl daemon-reload
+
+Starting/Stopping Services --------------------------------------------------------------
+
+To enable or disable a service:
+    systemctl enable <service>
+    systemctl disable <service>
+
+To start or stop a service:
+    systemctl start <service>
+    systemctl stop <service>
+
+To check on a service status:
+    systemctl status <service>
+
+To reload a service without interruption:
+    systemctl reload <service>
+
+To restart a service:
+    systemctl restart <service>
+
+Journalling -----------------------------------------------------------------------------
+
+To see journal log entries:
+    journalctl <flags>
+        -b : Only show logs from the current boot
+        -u <service>: Only show logs for the unit in question
+        -k : Show only kernel messages
+
+Power Off -------------------------------------------------------------------------------
+
+To power off the system:
+    systemctl [poweroff|reboot]
+
+To reboot into rescue mode:
+    systemctl [rescue]
+
+Targets ---------------------------------------------------------------------------------
+
+To view the default target:
+    systemctl get-default
+
+To set the default target:
+    systemctl set-default <target>
+
+To see what units are tied to a target:
+    systemctl list-dependencies <target>
+
+To switch to a specified target:
+    systemctl isolate <target>
+
+Common top level boot targets:
+    multi-user.target : Standard server target
+    graphical.target : Standard desktop target
+    emergency.target : Single user mode
+    rescue.target : Standard recovery target
+
+Common state switching targets:
+    halt.target : Halts the system without powering it down
+    poweroff.target : Powers the system down
+    reboot.target : Reboots the system
+
+Units -----------------------------------------------------------------------------------
+
+Units are the various objects that systemd knows how to manage.  Each is specified using
+a unit file.  They allow services to be started upon various events, such as the creation
+of sockets and paths, the publishing of dbuses, or the onlining of devices.  They also
+contain dependency information, and are extensible.
+The default unit files are contained in /lib/systemd/system, and are accessed via
+symlinks in /etc/systemd/system.  To create or modify unit files, it is best practice to
+redirect the symlinks to modified files.
+The unit types are:
+
+.service:
+    Describes how to manage a service or application.  It includes tart and stop
+    directives, autostart conditions, and a dependency tree
+
+.socket:
+    Describes an IPC socket, and points to a .service file to start when this socket is
+    first activated
+
+.device:
+    Describes a device that udev or sysfs has designated for systemd management. This
+    allows systemd to control mount order and accesses
+
+.mount:
+    Defines a mount point on the system to be managed by systemd.  Note that fstab
+    entries have .mount files automatically generated
+
+.automount:
+    Defines a mountpoint to be automounted.  Points to a .mount unit
+
+.swap:
+    Defines a swap space
+
+.target:
+    Provides a synchronization point or a system state.  Points to a set of services
+    and other targets.  See the Target section
+
+.path:
+    Defines a path for path=based activation.  Points to a service unit of the same
+    name
+
+.timer:
+    Describes a timer to be managed by systemd.  Essentially mimics a cron job for
+    delayed or scheduled activation.  Points to a service unit of the same name
+
+.snapshot:
+    Created automatically by 'systemctl snapshot'.  Allows the user to reconstruct the
+    current state of the system after making changes.  Deleted across sessions.
+
+.slice:
+    A linux control group (CG) node, allowing resources to be restricted or assigned
+
+.scope:
+    Created automatically from information received on the systemd bus interface for
+    managing external processes.
+
+Unit File Syntax ------------------------------------------------------------------------
+
+Unit files are formatted as sets of sections:
+
+[<Section>]
+<Directive1>=<value>
+<Directive2>=<value>
+
+To set a null directive, use the bash-like syntax:
+    <Directive1>=
+
+To set a boolean, use any one of
+    1, yes, on, true
+    0, no, off, false
+
+To set a time, use
+<num>[s|m|h|d|y|]
+
+The first section found in a unit file is the [Unit] section.  It defines metadata in the
+form of directives, these being:
+    Description : Describes the name and functionality of the unit
+    Documentation: Provides url or path to documentation
+    Requires: Units that must be started in parallel
+    Wants: Units that this one would like started in parallel
+    BindsTo: Requires, but also stops when the bound unit terminates
+    Before: Must be started after this unit
+    After: Must be started before this unit
+    Confilcts: Cannot run at the same time as this unit
+    Condition: Condition on which the unit is run (skips otherwise)
+    Assert: Condition but errors out if not met
+
+The last section in any enable-able file is [Install].  This contains information
+dictating when to enable or disable this unit based on others which have been explicitly
+enabled.
+
+All other sections are unit-specific, and can be searched pretty easily.
+
+Startup Sequence ------------------------------------------------------------------------
+
+When systemd is started, the kernel has just decompressed itself into memory and has
+yet to initialize any devices or filesystems.  Systemd therefore starts by mounting
+the filesystems specified in /etc/fstab, including swap files or partitions.  It then
+uses its own default.target (a symlink) to determine into which target it should boot.
+It then loads and starts all services and other dependencies required by that target.
+Note that it also looks in legacy SystemV init directories to see if any startup files
+are present there.
+At a lower level, the setup leading to default.target is implemented as a series of
+smaller pre-targets.
+The local-fs-pre and local-fs targets perform initial filesystem mounts and fscks,
+followed by swap, cryptsetup, udev, and the various top level abstract filesystems.
+These are guaranteed to complete together by the sysinit target.
+Next, timers, paths, sockets, and rescue services (if necessary) are performed, synced
+by the basic target.
+Finally, the default target is reached, and may call display-manager services or others
+depending on the function of the system.
+
