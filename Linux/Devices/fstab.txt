@@ -1,0 +1,69 @@
+The /etc/fstab file dictates to a booting linux kernel which devices it should
+mount and where to mount them.
+
+Format ------------------------------------------------------------------------
+
+The fstab file is formatted as a list of filesystem entries, each consisting
+of a set of values separated by tabs.  These values are:
+
+<filesystem>    <mountpoint>   <type>  <options>   <dump>  <pass>
+
+filesystem:
+    This variable consists of the filesystem or partition to mount.  It is
+    either a special keyword (such as proc), a device (such as /dev/sda1), or
+    a UUID assigned to a partition (can be found using the 'blkid' command).
+    A label can also be used, formatted as "LABEL=<label>".  These labels are
+    assigned to device partitions using gparted or a similar command.
+
+mountpoint
+    A location within the filesystem, or a special keyword (such as swap)
+
+type:
+    The filesystem type, includes ext2, ext3, ext4, swap, proc, etc.
+    The keyword 'auto' allows the mount command to guess based on the first
+    few bytes, a useful trick with hotplug devices such as CD's
+
+options:
+    Comma separated list of values:
+    auto: mount automatically at boot
+    noauto: opposite of auto
+    exec: allow execution of binaries on the partition
+    noexec: opposite of exec
+    ro: mount read-only
+    rw: mount read-write
+    sync: synchronous I/O
+    async: asynchronous I/O
+    flush: for FAT filesystems, flush early, flush often
+    user: permit any user to mount the filesystem (implies noexec,nosuid,nodev)
+    nouser: only allow root to mount the filesystem
+    suid: allow operation of suid/sgid bits (so users can access filesystem)
+    nosuid: opposite of suid
+    noatime: do not update inode access times on the filesystem
+    dev: allow the filesystem to contain devices
+    nodev: opposite of dev
+    defaults: equivalent to rw,suid,dev,exec,auto,nouser,async
+
+dump:
+    Used by the dump utility to decide when to make a backup. When installed,
+    dump will ignore filesystems marked with 0 and will attempt to backup
+    those marked with 1.  If dump isn't installed, just put 0.
+
+pass:
+    Determine fsck checking order
+    0: Fsck will not check this filesystem
+    1: Root filesystem - checked first
+    2: Anything else - checked afterward
+
+Special Entries ---------------------------------------------------------------
+
+procfs:
+    Should always be included
+    proc    /proc   proc    nodev,noexec,nosuid 0   0
+
+swap:
+    Swap space available to the kernel
+    <dev>   none    swap    sw  0   0
+
+tmpfs:
+    tmpfs   <mount> tmpfs   rw,nodev,nosuid,size=<size>,mode=<mode> 0   0
+
