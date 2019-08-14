@@ -1,0 +1,216 @@
+Linux Filesystem guide
+
+Mounting Filesystems ----------------------------------------------------------
+
+To list all currently attached filesystems:
+    mount
+
+To mount a filesystem contained in fstab:
+    mount <flags> <device>
+    OR
+    mount <flags> <directory>
+
+To mount a filesystem not contained in fstab:
+    mount <options> <device> <directory>
+
+    Options include:
+        -t <type> : Filesystem type (e.g. ext4)
+        -o <opts> : Options
+            loop : As loop device (mounts images as block devices)
+            See the fstab guide for more options
+
+    For example:
+    mount -t ext4 /dev/sdb1 /mnt/backu1p
+    mount -o loop ~/filesystems/fs.iso /mnt/fs
+
+To unmount a filesystem:
+    umount <directory>
+
+Maintaining Filesystems -----------------------------------------------------------
+
+To list all filesystems with types:
+    fdisk -l
+
+To see the partition UUID of a device:
+    blkid <device>
+
+Checking disk usage
+    df <opts>
+        -a : Show dummy filesystems as well
+        -h : Human readable format
+        -k, -m : In kilobytes or megabytes
+        -i : Display inodes
+        -T : Display filesystem type
+        -t <type> : Display only filesystems of a given type
+        -x <type> : Exclude filesystems of a given type
+        <dir> : Disk on which <dir> resides
+        --help : Help
+
+Checking filesystem usage
+    du <opts> <directory>
+        -a : Write count of all files, not just directories
+        -s : Display only total for each directory
+        -c : Print grand total
+        -h : Human readable
+        -d <depth>: Print only to a certain depth
+        --time : show modification time of any file/directory
+        --apparent-size: Print apparent size instead of disk usage
+        -0 : End each output line with null
+
+Creating Filesystems ----------------------------------------------------------
+
+To create a filesystem:
+    mkfs -t <type> device
+
+    Note that all types just alias to fs-specific mkfs utilities, like
+    mkfs.ext2 and mkfs.fat
+
+    Example:
+        mkfs -t ext3 /dev/sdb1
+
+Copying raw images to and from disks:
+    dd if=<input_file> of=<output_file> <opts>
+
+    Either input or output or both can be a device file or a normal file.
+    If one isn't specified, it comes from stdin or goes to stdout.
+
+    opts: Comma separated options
+        sync : Use synchronous I/O
+        conv=noerror : Continue even if there are read errors
+             fsync : Physically write output before finishing
+             sync : Pad every input block with NULL up to size
+        bs=N : Specifies copy block size in bytes (default 512)
+        count=N : Copy only N input blocks
+        seek=N : Start N bytes into output
+        skip=N : Start N bytes into input
+
+    Example: Write image to disk
+        dd if=~/images/diskimage.img of=/dev/hda conv=fsync
+
+Filesystem Types --------------------------------------------------------------
+
+ext2: High performance for removeable media
+ext3: Journaling version of ext2
+ext4: Supports larger files and filesystems
+vfat: MS-DOS filesystem useful for sharing files between Windows and Linux
+msdos: fat: Symlinks to vfat
+xfs: High performance journaling filesystem
+btrfs: Designed for large scalability
+ntfs: Current base Windows filesystem type
+
+Partitioning ------------------------------------------------------------------
+
+Devices can be divided into logical sections using a partitioning tool. There
+are two major schemes: Master Boot Record (MBR) and GUID Partition Table (GPT).
+Furthermore, BTRFS may occupy an entire disk and render partitions unnecessary,
+though that is beyond the scope of this guide.
+
+The MBR is the first 512 bytes of a disk, containing 440 bytes of possible
+bootloader followed by a partition table.  In this table, three types of
+partition are specified:
+Primary:
+    These are bootable, and are limited to 4 per disk
+    Traditionally, they are labeled as sda1 through sda4
+Extended:
+    This takes one primary spot, and allows logical partitions to be created
+    by pointing to a separate logical partition space.  Note that only one
+    can exist at a time, and it cannot contain a filesystem.
+    Traditionally, it is labelled as sd4
+Logical:
+    These are created under the Extended partition, allowing the MBR to be
+    extended almost arbitrarily.
+    Traditionally, these are sda5 and above
+
+GPT is a more modern system designed for compatibility with UEFI.  It starts
+with an MBR for older BIOS-based systems, then contains a set of partitions
+with globally unique UUID's (hence the GUID).  In /dev, these are labeled
+like hd1 and onward.
+To boot with BIOS, a BIOS boot partition is necessary.  Create a 1MB partition
+of type 'BIOS boot' or 'ef02', and set the flag bios_grub on it.  The GRUB
+installer should know what to do with this.
+To boot with UEFI, create an EFI system partition.  Create a 512 MB partition
+of type 'EFI System', 'EF00', or 'fat32' with the 'esp' flag set. Format this
+partition as fat32 (i.e. mkfs.fat -F32 <partition>).
+
+Creating Partitions -----------------------------------------------------------
+
+To create GPT partitions, use the 'parted' command:
+    parted <dev>
+        -h : help
+        -s : script mode (never prompt user)
+        -v : version
+
+Parted takes one into an interactive mode, where the following commands are
+available:
+
+    align-check [minimal|optimal] <n>:
+        Check whether partition <n> is aligned correctly
+    disk_set <flag> [on|off]:
+        Set a disk flag on or off
+        pmbr_boot : Enables the boot flag on the protective MBR
+    set <num> <flag> [on|off]:
+        Set a partition flag on or off
+        bios_grub : Label this as a GRUB BIOS partition
+        legacy_boot : Describe the GPT partition as bootable
+        boot : Enable to allow boot off this partition
+        msftdata : Label this partition is containing FAT or NTFS
+        msftres : Label this partition as Windows OS reserved data
+        irst : Intel Rapid Start Technology partition
+        esp : UEFI System partition (needed for boot partitions on GPT)
+        lba : Linear mode (Windows legacy only)
+        root : This is a root partition
+        swap : Swap space
+        hidden : Hide this partition from Windows ;)
+        raid : Raid partition
+        PREP : PowerPC or IBM boot partition
+        All others are specific to MS-DOS or less common architectures
+    help:
+        Help
+    mklabel <label>:
+        Relabel a disk with no partitions of defined <type>
+        loop : Raw access
+        msdos : MBR
+        gpt : GPT
+        mac : Something Mac Related
+        bsd : Something BSD specific
+    mkpart [<type> <fs-type> <name>] <start> <end>
+        Create partition type without creating the filesystem itself
+        <start> : Beginning offset of partition (megabytes)
+            <num><size> : Offset with order of magnitude label (4m, etc)
+            <num>s : A given sector
+        <end> : End offset of partition
+            <num><size> : Offset with order of magnitude label (4m, etc)
+            -ls : Last sector
+        <part-type> : primary, extended, logical
+        <name> : Only necessary with GPT partitions
+        <fs-type> : One of
+            ext2, ext3, ext4, fat32, hfs, linux-swap, NTFS, ufs, btrfs
+    name <number> <name>:
+        Give a partition number a name
+    print [<number>]:
+        Print either the total partition table, or details about a certain one
+    quit:
+        Quit
+    rm <num>:
+        Remove a partition
+    rescue <start> <end>:
+        Try rescuing a partition between start and end that has been deleted.
+    resizepart <number> <end>:
+        Try resizing a partition to a new end
+    select <dev>:
+        Select a new device to edit
+    unit <unit>:
+        Set default size unit
+        s : sectors
+        B : Bytes
+        KB, etc: Kilobytes, etc
+        KiB, etc: Kibibytes, etc
+        % : Percentage of device
+        compact : Defaults MB for input, human-readable for output
+
+To create a new disk, first use 'mklabel' to create a new partition table, then
+use 'mkpart' to make each partition as required
+
+To rescue a partition table, first try to find the headers:
+    gpart <dev>
+Then repair with 'parted' -> 'rescue'
