@@ -1,0 +1,80 @@
+The SystemV init process is the precursor to systemd, acting as first process
+and serving to bring up all other processes upon boot.  It reads entries from
+/etc/inittab and started the corresponding processes based on the requested
+run-level.
+When switching between run-levels (or starting up), init first reads the
+inittab and determines which processes need to be stopped and started. It
+then runs /etc/init.d/rc with those parameters.  rc runs the stop scripts
+for all processes to be stopped and then runs the start scripts for all
+processes to be started.
+
+Run-Levels --------------------------------------------------------------------
+
+Init starts and stops processes in order to transfer the system between a
+series of run-levels.  These are:
+    0: System Halt
+    S: Single user mode from boot prompt
+    1: Single user mode
+    2: Local multiuser mode (no network)
+    3: Full multiuser mode
+    4: NOT USED
+    5: Full multiuser mode with network and X display manager (graphical)
+    6: System reboot
+
+Each process within a given run-level has a start and stop script located in
+/etc/init.d/rc<level>.d/
+The start scripts begin with S<num>, and the stop scripts begin with K<num>,
+where the num indicates the order of execution based on dependencies.
+Note that these run-level scripts are just symlinkns to physical scripts
+located within /etc/init.d itself.  See the Scripts section for more details.
+
+Commands ----------------------------------------------------------------------
+
+Entering another run-level:
+    telinit <level>
+
+Reading inittab (for error checking):
+    telinit q
+
+Scripts -----------------------------------------------------------------------
+
+Scripts for init execution are located in /etc/init.d and contain a list of
+options.  They are usually executed by rc when run-level is changed, but can
+be executed directly by init when an unexpected shutdown is triggered. The
+latter case is specified in /etc/inittab.
+
+The possible script options are:
+    start: starts the service
+    stop: stops the service
+    restart: starts or restarts the service
+    reload: reload service configuration without stopping and restarting
+    force-reload: reload if supported, otherwise restart
+    stats: show service status
+
+To create an init script, use /etc/init.d/skeleton as a template.  Ensure that
+the INIT INFO block at the top is filled out correctly:
+    Provides: the name of the service
+    Required-Start: Services which must start before this one
+    Required-Stop: Services which must stop before this one
+    Default-Start: Runlevels in which this service should autostart
+    Default-Stop: Runlevels in which this service should autostop
+    Description: Exactly what it sounds like
+
+To automatically create links for a new script based on its INIT INFO header:
+    insserv <script-name>
+
+Init Lifecycle ----------------------------------------------------------------
+
+After the kernel finishes boot, it setups up and runs init with PID=1.  Init
+first mounts /proc and /dev/pts (for pseudoterminals).  Then it starts the
+blogd script, which handles system output until the end of boot, where it waits
+to write to /var/log/boot.msg as soon as that file is available.  Next, all
+start scripts (starting with S) in /etc/init.d/boot.d are executed.  These
+include fscks, system time synchronization, etc.  Finally, boot.local is run,
+allowing user-defined autoexec to occur.
+For the rest of its life, init calls rc to start and stop scripts based on
+changes in runlevel.  When changing from single user to any other mode,
+boot.setup is run to initialize keyboard and virtual console layouts.
+On shutdown, halt is executed, turning everything off safely and triggering a
+halt or reboot.
+
