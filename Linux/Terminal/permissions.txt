@@ -1,0 +1,105 @@
+Guide to Linux permissions
+
+Permission Structure ----------------------------------------------------------
+
+All files and folders in base Linux bear a set of attributes designed to
+restrict access.  Each file has an owner, the "user".  Each also has a "group",
+ideally the set of users with somewhat privilaged access.
+There are three sets of permissions for each file - user, group, and other.
+For each set, the file allows one or more of read (r), write (w), or execute(x)
+actions.
+Read indicates that the contents of that file or folder can be viewed.  Write
+indicates that the file can be edited or the contents of the directory can
+be renamed or removed.  Execute means the file cna be executed or the folder
+can be entered and subdirectories listed.
+
+Permission String -------------------------------------------------------------
+
+The permissions associated with each file can be represented by a string: of 10
+characters.  For example:
+
+    -rwsr-xr-x
+
+These are (from left to right):
+
+0: Type bit
+    - : File
+    d : Directory
+1-3: User bits
+1: User Read
+    - : No read by user allowed (really strange)
+    r : User read allowed
+2: User Write
+    - : No write by user allowed
+    w : User write allowed
+3: User execute
+    - : No execution by user allowed
+    x : User execute allowed
+    s : Set UID - when running, run using user's UID
+4-6: Group bits
+4: Group Read
+    - : No read by group allowed
+    r : Group read allowed
+5: Group Write
+    - : No write by group allowed
+    w : Group write allowed
+6: Group execute
+    - : No execution by group allowed
+    x : Group execute allowed
+    s : Set GID - when running, run using group's GID
+7-9:
+7: Other Read
+    - : No read by other allowed
+    r : Other read allowed
+8: Other Write
+    - : No write by other allowed
+    w : Other write allowed
+9: Other execute
+    - : No execution by other allowed
+    x : Other execute allowed
+    t : Stick Bit - Only the file owner can actually /delete/ it
+
+Permission Octal --------------------------------------------------------------
+
+Permissions can also be specified by a set of octal values:
+Example:
+
+    Oo0774
+
+Here meaning user and group get R/W/X permissions, but other only gets X
+
+Each of the first three octals is formatted:
+    1: X
+    2: W
+    4: R
+With multiple permissions ORed together.  From LSB, these represent user, group,
+and other.  Finally, the last octal is:
+    1: Sticky bit
+    2: Set GID
+    4: Set UID
+
+
+Setting Permissions -----------------------------------------------------------
+
+To change permissions:
+    chmod <permission> <file>:
+
+    Where <permission> is formatted as <set><operation><perm>
+    set:
+        u : User
+        g : Group
+        o : Other
+        a : All
+    operator:
+        + : Add permission
+        - : Remove permission
+        = : Set permission
+    perm:
+        r : Read
+        w : Write
+        x : Execute
+        s : Set and Execute (see Permission String section)
+
+    Example:
+        chmod u+x : Add user execute permission
+        chmod g=-rw: Group permission becomes read/write/not execute

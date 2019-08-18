@@ -1,0 +1,189 @@
+Simple filesystem navigation
+
+Changing Directories ----------------------------------------------------------
+
+To change directories
+    cd <newdir>
+
+To change while remembering the current directory
+    pushd <newdir>
+
+To return to the current directory
+    popd
+
+Note that pushd and popd can store an essentially arbitrary stack of
+directories.
+
+Finding Files -----------------------------------------------------------------
+
+To find a file by characteristic:
+    find <options> <directory> <characteristic>
+
+    Where <directory> is the directory in which to search
+    characteristic:
+        -name <regex> : Self-explanitory
+        -iname <regex> : Name but ignoring case
+        -type [f|d] : File or directory
+        -empty : File is empty
+        -user <user> : File owner is user
+        -mtime <time> : Maximum time since last modification
+    options:
+        -not : Return only files that /don't/ fit
+        -O1 : Default, filter by name first
+        -O2 : Filter name first, then filetype
+        -O3 : Reorder search based on greatest efficiency
+        -maxdepth <num> : Search only num levels deep from the top
+        -iname : Ignore text case
+        -print : Print filenames to stdout
+
+To find a file by contents:
+    grep <opts> <text> <file>
+
+    text is a string or regex
+    file is a file or folder path
+    opts:
+        -i : case insensitive
+        -w : only return lines where text is a complete word
+        -r : recursively
+        -v : only lines without the pattern
+        -H : print filename along with matched line
+        -l : print only names of files with matches
+        -L : print only names of files without matches
+        -A<n> : print n lines after the match as well
+        -B<n> : print n lines before the match as well
+        -C<n> : Same as -AnBn
+        -q : Print nothing, only return whether successful or not
+        -E : Treat string as regular expression
+
+To list files and see information:
+    ls <opts> <directory>
+
+    opts:
+        -l : long - give more information about each entry
+        -a : all - show hidden files (starting with .) as well
+        -R : recursive - list directories recursively
+        -X : extension - sort by file extension
+        -S : size - sort by file size
+
+File Manipulation -------------------------------------------------------------
+
+Remove File
+    rm <options> <file>
+
+    options:
+        -f : Force, ignore nonexistent files, never prompt
+        -i : Prompt before every removal
+        -r : Recursive (needed for directories)
+        -v : Verbose - print file names while removing them
+
+Move Files:
+    mv <options> <source> <destination>
+
+    options:
+        -f : Force, do not prompt before overwriting
+        -i : Interactive, prompt before overwriting
+        -n : No-clobber, do not overwrite
+        -u : Only overwrite when the source is newer than the destination
+        -v : Verbose
+
+Copy Files Locally:
+    cp <options> <source> <destination>
+
+    options:
+        -a : Preserve all file attributes
+        -l : Link files instead of copying
+        -n : Don't overwrite existing files
+        -r : Recursive
+        -s : Symbolic link instead of copying
+        -u : Copy only when the source file is newer than the destination
+        -v : Verbose - explain what is being done
+
+Copy Files Remotely:
+    scp <options> <source> <dest>
+
+    Where source and dest can be either local or remote, formatted as
+        [user@]host:<file>
+
+    options:
+        -c <cipher> : Selects cipher for encrypting transfer
+        -i <idfile> : Select private key file for ssh
+        -l <limit> : Limit bandwidth, in Kbit/s
+        -o <ssh_option> : Further ssh options
+        -P <port> : Port to connect to on remote server
+        -p : Preserve modification times, access times, and modes
+        -q : Quiet, disable progress meter
+        -r : Recursive
+        -v : Verbose mode
+
+Copy Files Efficiently
+    rsync <options> <source> <destination>
+
+    Where source and dest can be either local or remote, formatted as
+        [user@]host:<file>
+
+    options:
+        -a : Archive, preserve symlinks, permissions, timestamps, etc
+        -r : Recursive
+        -z : Compress file data
+        -h : Human readable format
+        -v : Verbose
+
+Link Files:
+    ln <options> <oldfile> <newfile>
+
+    options:
+        -s : Make links symbolic
+        -v : Verbose
+
+Create File:
+    Simply perform an edit command (or touch, see below)
+
+Create Directory:
+    mkdir <options> <directory>
+
+    options:
+        -m <mode> : Set directory mode
+        -p : Create parents if they don't already exist
+        -v : Verbose
+
+Edit File Parameters:
+    touch <options> <file>
+
+    options:
+        -c : If the file does not exist, do not create it
+        -a : Change the access time
+        -m : Change the modification time
+        -d : Change the access and modification time
+        -t <YYDDHHMM> : Specify a time
+        -r <file> : Use the access and modification times of another file
+
+Print File:
+    Print whole thing
+        cat <file>
+
+    Print the first n lines:
+        head -n <n> <file>
+
+    Print the last n lines:
+        tail -n <n> <file>
+
+    Print in a manipulable way:
+        less <file>
+
+        Inside "less":
+            :g : Go to top
+            :G : Go to bottom
+            :q : Quit
+
+Args --------------------------------------------------------------------------
+
+To feed arguments into another command:
+    xargs <cmd>
+
+    Xargs pipes arguments into stdin and applies cmd to each line.  For
+    instance:
+
+        find . -type f -print | xargs grep "example"
+
+    Pipes all files within the current directory into xargs, which then
+    applies grep "example" on each
