@@ -1,0 +1,25 @@
+Linux Device Guide (compatible with udev)
+
+Finding Devices ---------------------------------------------------------------
+
+To list PCI devs:
+    lspci
+
+To list usb devs:
+    lsusb
+
+To list block devs:
+    lsblk
+
+Devices -----------------------------------------------------------------------
+
+To see current RAM usage:
+    free
+
+Filesystems -------------------------------------------------------------------
+
+To list disks:
+    fdisk -l
+
+To see partition UUID:
+    blkid
